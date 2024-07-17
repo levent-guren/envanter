@@ -1,6 +1,5 @@
 package tr.gov.sg.util;
 
-import java.security.Key;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -37,14 +36,24 @@ public class Security implements CommandLineRunner {
 		String roles = roller.stream().map(Rol::getAdi).reduce((a, b) -> a + "," + b).orElse("");
 		Map<String, Object> customKeys = new HashMap<>();
 		customKeys.put("roller", roles);
-		customKeys.put("kullaniciId", kullanici.getId().toString());
+		// customKeys.put("kullaniciId", kullanici.getId().toString());
+		customKeys.put("kullaniciAdi", kullanici.getAdi());
 		builder = builder.claims(customKeys);
 		Instant tarih = Instant.now().plus(15, ChronoUnit.MINUTES);
 		builder = builder.subject("login").issuedAt(new Date()).expiration(Date.from(tarih));
 		return builder.signWith(getKey()).compact();
 	}
 
-	private Key getKey() {
+	public Claims validateTokenAndGetClaims(String token) {
+		JwtParser parser = Jwts.parser().verifyWith(getKey()).build();
+		// parseSignClaims metodu hem SECRET_KEY kontrolünü yapıyor,
+		// hem de token'ın zamanı geçmiş mi kontrolünü yapıyor.
+		// Herhangi bir hata durumunda da exception fırlatıyor.
+
+		return parser.parseSignedClaims(token).getPayload();
+	}
+
+	private SecretKey getKey() {
 		byte[] decoded = Base64.getDecoder().decode(SECRET_KEY);
 		return Keys.hmacShaKeyFor(decoded);
 	}
@@ -99,7 +108,7 @@ public class Security implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		System.out.println("SECRET_KEY:" + SECRET_KEY);
+		// System.out.println("SECRET_KEY:" + SECRET_KEY);
 	}
 
 }
