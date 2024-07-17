@@ -39,7 +39,7 @@ public class Security implements CommandLineRunner {
 		// customKeys.put("kullaniciId", kullanici.getId().toString());
 		customKeys.put("kullaniciAdi", kullanici.getAdi());
 		builder = builder.claims(customKeys);
-		Instant tarih = Instant.now().plus(15, ChronoUnit.MINUTES);
+		Instant tarih = Instant.now().plus(1, ChronoUnit.DAYS);
 		builder = builder.subject("login").issuedAt(new Date()).expiration(Date.from(tarih));
 		return builder.signWith(getKey()).compact();
 	}
